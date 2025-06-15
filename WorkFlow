@@ -1,0 +1,198 @@
+
+---
+
+## 📋 PHASE 0: **Goals Summary**
+
+| Goal # | Description                                                  |
+| ------ | ------------------------------------------------------------ |
+| G1     | Read raw input from keyboard (incl. special keys)            |
+| G2     | Implement a text buffer with efficient insert/delete         |
+| G3     | Track a cursor position (line, column)                       |
+| G4     | Handle screen rendering and scrolling                        |
+| G5     | Handle input commands (movement, insert, delete, save, quit) |
+| G6     | Add multi-line support and newline logic                     |
+| G7     | Add file I/O (open, save)                                    |
+| G8     | (Optional) Add undo/redo, syntax highlighting, search        |
+
+---
+
+## 🔧 PHASE 1: **Input System (G1)**
+
+### 📌 Goal
+
+Read every keypress — character keys, arrows, backspace, ctrl, etc.
+
+### 🧠 Concepts / Tools
+
+* `msvcrt.getch()` (Windows)
+* Keycode decoding (UTF-8, byte sequences)
+* Arrow key mapping (e.g., `b'\xe0M'` → right arrow)
+
+---
+
+## 🧠 PHASE 2: **Text Buffer & Cursor (G2, G3)**
+
+### 📌 Goal
+
+Store the text efficiently, track the cursor position logically and visually.
+
+### ✅ Data Structures
+
+| Feature         | Data Structure                      | Reason                          |
+| --------------- | ----------------------------------- | ------------------------------- |
+| Text editing    | **Rope** or **Gap Buffer**          | Fast insert/delete anywhere     |
+| Cursor position | `(row, col)` coords                 | Easier for multiline            |
+| Line mapping    | Array of lines (`List[List[str]]`)  | Simple, allows per-line editing |
+| Cursor index    | Convert `(row, col)` <-> char index | Needed for Rope                 |
+
+### 🔀 Choose One Buffer Structure:
+
+#### 🔵 **Option 1: Rope**
+
+* Tree of strings
+* `insert`, `delete`, `split`, `concat` in O(log n)
+* Best for large files
+
+#### 🔵 **Option 2: Gap Buffer**
+
+* Array + "gap" at cursor
+* Fast insert/delete at cursor
+* Simpler to implement than Rope
+
+#### 🔵 Option 3: Naive List\[List\[str]] (start here)
+
+* Easy to implement
+* Slower on big edits, but ideal for early learning
+
+---
+
+## 🖥️ PHASE 3: **Display & Rendering (G4)**
+
+### 📌 Goal
+
+Render the buffer + cursor to the terminal every frame.
+
+### 🔧 Tools
+
+* `os.system('cls')` for screen clearing
+* Cursor rendering (`print(' ' * col + '^')`)
+* Optional: `colorama` or ANSI codes for color/highlight
+
+---
+
+## 🧭 PHASE 4: **Movement & Editing Commands (G5)**
+
+### 📌 Goal
+
+Implement all basic editor actions
+
+### 📌 Actions to Handle
+
+| Action       | Trigger Key | Effect                    |
+| ------------ | ----------- | ------------------------- |
+| Move left    | ←           | `cursor.col -= 1`         |
+| Move right   | →           | `cursor.col += 1`         |
+| Move up/down | ↑ / ↓       | `cursor.row ±= 1`         |
+| Backspace    | ⌫           | Delete char before cursor |
+| Delete       | Del         | Delete char at cursor     |
+| Insert char  | any key     | Insert at cursor          |
+| Enter        | ⏎           | Split line                |
+
+### ✅ Structures to Support
+
+* Cursor object with row/col
+* Text buffer with lines
+* Functions:
+
+  * `insert_char(c)`
+  * `delete_before_cursor()`
+  * `delete_at_cursor()`
+  * `split_line()`
+  * `join_lines()`
+
+---
+
+## 💾 PHASE 5: **File I/O (G7)**
+
+### 📌 Goal
+
+Load from and save to `.txt` files
+
+### 🔧 Tools
+
+* Python file read/write
+* Open as lines → buffer
+* Save buffer → file
+
+### Functions
+
+```python
+def load_file(filename):
+    # read lines into buffer
+def save_file(filename):
+    # write buffer to disk
+```
+
+---
+
+## 📏 PHASE 6: **Line Wrapping + Scrolling (G4 cont’d)**
+
+### 📌 Goal
+
+Support viewing only part of the buffer if screen too small
+
+### Data
+
+* `viewport_top_row`
+* `screen_height`, `screen_width`
+
+### Logic
+
+* Clamp cursor to visible range
+* Scroll if cursor moves off-screen
+* Re-render only visible lines
+
+---
+
+## ✨ PHASE 7: **Multiline Input (G6)**
+
+### 📌 Goal
+
+Make Enter split lines and handle cursor row/col properly
+
+### Logic
+
+* Pressing Enter splits current line
+* Arrow keys move cursor across lines
+* Backspace at col 0 joins lines
+
+---
+
+## 🧠 PHASE 8: **Advanced Features (Optional G8)**
+
+| Feature             | Tools / Concepts                |
+| ------------------- | ------------------------------- |
+| Undo/Redo           | Stack of operations             |
+| Syntax highlighting | Regex, tokenization, ANSI codes |
+| Search              | KMP/Regex                       |
+| Mouse support       | `pywin32`, advanced libs        |
+| Real-time refresh   | `curses`, `blessed`, etc.       |
+
+---
+
+## 📘 Summary — Ordered Learning Milestones
+
+| Phase | Task                         | Key Data Structure or Algo  |
+| ----- | ---------------------------- | --------------------------- |
+| 1     | Read raw keystrokes          | `msvcrt.getch()`            |
+| 2     | Build buffer + cursor system | Rope, Gap Buffer, or List   |
+| 3     | Redraw editor screen         | Manual screen clear + print |
+| 4     | Implement movement & editing | Key handling, insert/delete |
+| 5     | File I/O                     | File read/write             |
+| 6     | Add viewport + scrolling     | Viewport offset             |
+| 7     | Multiline buffer             | List of lines, split/join   |
+| 8     | Extend features              | Stacks, Regex, ANSI, etc.   |
+
+---
+
+Let me know which phase you want to start coding first — I can walk you through each phase with working examples and exercises.
