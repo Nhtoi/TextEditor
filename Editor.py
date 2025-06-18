@@ -13,6 +13,7 @@ Pos = (0,0)
 #b'\x13' crtl + s
 #b'\x17' ctr + w
 # b'\x11' ctrl + q
+#I feel like this function needs to constantly update the gapbuffer
 def getInput():
     global isTyping
     pressed = ""
@@ -58,6 +59,7 @@ def getInput():
         sys.stdout.write(f'\r' + words + ' ')
         sys.stdout.flush()
 
+#should pass this to the gapbuffer so get the exact position of the edit/insertion/delete
 def get_cursor_position():
     global Pos
     sys.stdout.write('\x1b[6n')
@@ -92,4 +94,3 @@ getInput()
 #row_diff = row
 #col_diff = column
 get_cursor_position()
-
