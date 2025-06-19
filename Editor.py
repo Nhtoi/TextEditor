@@ -1,8 +1,11 @@
 import msvcrt
 import sys
 import GapBuffer as gp
+import FileOperations as fo
 isTyping = True
 Pos = (0,0)
+textfile = fo.Operations()
+textfile.path = "newtxt.txt"
 
 #b'\xe0M' Right Arrow
 #Backspace b'\x08'
@@ -41,16 +44,16 @@ def getInput():
                 textField._movegap(get_cursor_position())
             #left
             elif arrow == b'K':
-                sys.stdout.write(f'\x1b[{1}D')
-                sys.stdout.flush()
-                get_cursor_position()
-                textField._movegap(get_cursor_position())
+                if textField.start > 0:
+                    sys.stdout.write(f'\x1b[1D')
+                    sys.stdout.flush()
+                    textField._movegap(textField.start - 1)
             #right
             elif arrow == b'M':
-                sys.stdout.write(f'\x1b[{1}C')
-                sys.stdout.flush()
-                get_cursor_position()
-                textField._movegap(get_cursor_position())
+                if textField.end < textField.size:
+                    sys.stdout.write(f'\x1b[1C')
+                    sys.stdout.flush()
+                    textField._movegap(textField.start + 1)
             continue
         #backspace
         elif pressed == b'\x08':
@@ -69,6 +72,7 @@ def getInput():
             pos = get_cursor_position()
             textField.insert(pos, ch)
             sys.stdout.flush()
+
 
 #should pass this to the gapbuffer so get the exact position of the edit/insertion/delete
 def get_cursor_position():
@@ -94,5 +98,15 @@ def get_cursor_position():
             return 0
     return 0
 
-getInput()
-get_cursor_position()
+def Open():
+    text = textfile.open()
+    textField.create(text)
+    getInput()
+    get_cursor_position()
+    
+
+Open()
+# getInput()
+# get_cursor_position()
+textfile.text = textField.toSave()
+textfile.save()

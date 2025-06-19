@@ -16,16 +16,32 @@ class GapBuffer():
         sys.stdout.write(visible)
         sys.stdout.write(f'\r\033[{self.start + 1}G')  
         sys.stdout.flush()
-   
-    #usable for when loading a file and need to create a buffer for it    
-    # def create(self, string):
-    #     str_len = len(string)
-    #     assert str_len <= self.size, "file too big for the buffer"
-    #     for i in range(str_len):
-    #         self.data[i] = string[i]
-    #     self.start = str_len
-    #     self.end = self.size
-    #     return self.print()
+    
+    def toSave(self):
+        return "".join(self.data[:self.start] + self.data[self.end:])
+    
+    def create(self, string):
+        str_len = len(string)
+        if str_len == 0:
+            return
+
+        # Resize if needed
+        while str_len > self.size:
+            self._rezise()
+
+        # Keep gap at end
+        gap_start = str_len
+        gap_size = self.size - str_len
+        gap_end = gap_start + gap_size
+
+        new_data = [" "] * self.size
+        for i in range(str_len):
+            new_data[i] = string[i]
+
+        self.data = new_data
+        self.start = gap_start
+        self.end = gap_end
+        return self.print()
 
 #grap cursor position and then insert a character at the place and then return the new built string
     def insert(self, pos, string):
@@ -53,8 +69,8 @@ class GapBuffer():
     
     def _movegap(self, pos):
         x = pos
-        if len(self.data) <= self.end:
-            return
+        # if len(self.data) <= self.end:
+        #     return
         if x < self.start: 
             while self.start > x:
                 self.start -= 1
