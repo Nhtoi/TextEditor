@@ -1,7 +1,9 @@
 import msvcrt
 import sys
+import GapBuffer as gp
 isTyping = True
 Pos = (0,0)
+
 #b'\xe0M' Right Arrow
 #Backspace b'\x08'
 #b'\xe0K' Left Arrow
@@ -14,6 +16,8 @@ Pos = (0,0)
 #b'\x17' ctr + w
 # b'\x11' ctrl + q
 #I feel like this function needs to constantly update the gapbuffer
+
+textField = gp.GapBuffer()
 def getInput():
     global isTyping
     pressed = ""
@@ -28,36 +32,43 @@ def getInput():
                 sys.stdout.write(f'\x1b[{1}A')
                 sys.stdout.flush()
                 get_cursor_position()
+                textField._movegap(get_cursor_position())
             #down
             elif arrow == b'P':
                 sys.stdout.write(f'\x1b[{1}B')
                 sys.stdout.flush()
                 get_cursor_position()
+                textField._movegap(get_cursor_position())
             #left
             elif arrow == b'K':
                 sys.stdout.write(f'\x1b[{1}D')
                 sys.stdout.flush()
                 get_cursor_position()
+                textField._movegap(get_cursor_position())
             #right
             elif arrow == b'M':
                 sys.stdout.write(f'\x1b[{1}C')
                 sys.stdout.flush()
                 get_cursor_position()
+                textField._movegap(get_cursor_position())
             continue
         #backspace
         elif pressed == b'\x08':
-            words = words[:-1]
+            textField.backspace(get_cursor_position())
         #quit typing
         elif pressed == b'\x11':
             isTyping = False
             break
+        #ctrl + a
+        elif pressed == b'\x01':
+            pass
         #type actual "printable" characters
         #0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
         elif pressed.decode(errors="ignore").isprintable():
-            words += pressed.decode(errors="ignore")
-                
-        sys.stdout.write(f'\r' + words + ' ')
-        sys.stdout.flush()
+            ch = pressed.decode(errors="ignore")
+            pos = get_cursor_position()
+            textField.insert(pos, ch)
+            sys.stdout.flush()
 
 #should pass this to the gapbuffer so get the exact position of the edit/insertion/delete
 def get_cursor_position():
@@ -68,29 +79,20 @@ def get_cursor_position():
     response = b''
     while True:
         ch = msvcrt.getch()
-        if ch == b'\x11':
+        if ch == b'\x11':  # Ignore XON
             continue
         response += ch
         if ch == b'R':
             break
+
     if response.startswith(b'\x1b[') and response.endswith(b'R'):
         try:
             row, col = map(int, response[2:-1].decode().split(';'))
-            currPos = (row, col)
-            old_row, old_col = Pos
-            new_row, new_col = currPos
-            row_diff = new_row - old_row
-            col_diff = new_col - old_col
-            #get updated cursor position
-            return (row_diff, col_diff)
+            Pos = (row, col)
+            return col - 1  # Convert to 0-based column index
         except:
-            return None, None
-    return None, None
+            return 0
+    return 0
 
-
-print()
 getInput()
-#can be called to get cursor position for gap buffer
-#row_diff = row
-#col_diff = column
 get_cursor_position()
