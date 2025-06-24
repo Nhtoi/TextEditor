@@ -9,12 +9,29 @@ class GapBuffer():
         #data coming from the typed characters
         self.data = [" "] * cap
         self.size = cap
+        self._last_render = ""
     
     def print(self):
-        sys.stdout.write('\r\033[K')
+
+        sys.stdout.write('\x1b[?25l')
         visible = "".join(self.data[:self.start] + self.data[self.end:])
-        sys.stdout.write(visible)
-        sys.stdout.write(f'\r\033[{self.start + 1}G')  
+        cursor_col = self.start
+
+        # Only redraw if changed
+        if visible != self._last_render:
+            sys.stdout.write('\r')            
+            sys.stdout.write(visible)
+
+            # Pad with spaces if shrinking
+            if len(visible) < len(self._last_render):
+                sys.stdout.write(" " * (len(self._last_render) - len(visible)))
+                sys.stdout.write('\r')
+                sys.stdout.write(visible)
+
+            self._last_render = visible
+
+        sys.stdout.write('\x1b[?25h')
+        sys.stdout.write(f'\r\x1b[{cursor_col + 1}G')
         sys.stdout.flush()
     
     def toSave(self):
@@ -51,7 +68,6 @@ class GapBuffer():
                 self._rezise()
             self.data[self.start] = c
             self.start += 1
-        return self.print()
         
     def _rezise(self):
         oldsize = self.size
@@ -69,20 +85,17 @@ class GapBuffer():
     
     def _movegap(self, pos):
         x = pos
-        # if len(self.data) <= self.end:
-        #     return
+
         if x < self.start: 
             while self.start > x:
                 self.start -= 1
                 self.end -= 1
-                # if self.data[self.end] is None:
-                #     break
+
                 self.data[self.end] = self.data[self.start]
                 self.data[self.start] = ""
         elif x > self.start:
             while self.start < x:
-                # if self.data[self.end] is None:
-                #     break
+
                 self.data[self.start] = self.data[self.end]
                 self.data[self.end] = ""
                 self.start += 1

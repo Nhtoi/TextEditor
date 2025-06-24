@@ -2,32 +2,32 @@ import msvcrt
 import sys
 import GapBuffer as gp
 import FileOperations as fo
+
 isTyping = True
-Pos = (0,0)
 textfile = fo.Operations()
 textfile.path = "newtxt.txt"
+textField = gp.GapBuffer()
 
-#b'\xe0M' Right Arrow
-#Backspace b'\x08'
-#b'\xe0K' Left Arrow
-#b'\xe0H' # Up Arrow
-#b'\xe0P # Down Arrow
-#Press q to quit
+
 #b'\x03' ctrl + c
 #b'\x1a' ctrl + z
 #b'\x13' crtl + s
 #b'\x17' ctr + w
 # b'\x11' ctrl + q
-#I feel like this function needs to constantly update the gapbuffer
 
-textField = gp.GapBuffer()
+
+def quitTyping():
+    textfile.text = textField.toSave()
+    textfile.save()
+    return False
+
 def getInput():
     global isTyping
     pressed = ""
     words = ""
+    
     while isTyping:
         pressed = msvcrt.getch()
-        
         if pressed in [b'\x00', b'\xe0']:
             arrow = msvcrt.getch()
             #up
@@ -57,26 +57,22 @@ def getInput():
             continue
         #backspace
         elif pressed == b'\x08':
-            textField.backspace(get_cursor_position())
+            textField.backspace(textField.start)
+            textField.print()
         #quit typing
         elif pressed == b'\x11':
-            isTyping = False
-            break
+            return quitTyping()
         #ctrl + a
         elif pressed == b'\x01':
             pass
-        #type actual "printable" characters
-        #0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
+        #printable chars
         elif pressed.decode(errors="ignore").isprintable():
             ch = pressed.decode(errors="ignore")
-            pos = get_cursor_position()
-            textField.insert(pos, ch)
-            sys.stdout.flush()
+            textField.insert(textField.start, ch)
+            textField.print()
 
-
-#should pass this to the gapbuffer so get the exact position of the edit/insertion/delete
 def get_cursor_position():
-    global Pos
+    pos = (0,0)
     sys.stdout.write('\x1b[6n')
     sys.stdout.flush()
 
@@ -92,7 +88,7 @@ def get_cursor_position():
     if response.startswith(b'\x1b[') and response.endswith(b'R'):
         try:
             row, col = map(int, response[2:-1].decode().split(';'))
-            Pos = (row, col)
+            pos = (row, col)
             return col - 1  # Convert to 0-based column index
         except:
             return 0
@@ -102,11 +98,5 @@ def Open():
     text = textfile.open()
     textField.create(text)
     getInput()
-    get_cursor_position()
-    
 
 Open()
-# getInput()
-# get_cursor_position()
-textfile.text = textField.toSave()
-textfile.save()
