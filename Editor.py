@@ -2,12 +2,10 @@ import msvcrt
 import sys
 import GapBuffer as gp
 import FileOperations as fo
-
 isTyping = True
+textField = gp.GapBuffer()
 textfile = fo.Operations()
 textfile.path = "newtxt.txt"
-textField = gp.GapBuffer()
-
 
 #b'\x03' ctrl + c
 #b'\x1a' ctrl + z
@@ -25,7 +23,7 @@ def getInput():
     global isTyping
     pressed = ""
     words = ""
-    
+
     while isTyping:
         pressed = msvcrt.getch()
         if pressed in [b'\x00', b'\xe0']:
@@ -66,6 +64,7 @@ def getInput():
         elif pressed == b'\x01':
             pass
         #printable chars
+
         elif pressed.decode(errors="ignore").isprintable():
             ch = pressed.decode(errors="ignore")
             textField.insert(textField.start, ch)
@@ -100,3 +99,4 @@ def Open():
     getInput()
 
 Open()
+
